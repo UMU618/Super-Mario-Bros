@@ -34,7 +34,7 @@ class Mario
 
 	std::vector<Mushroom> mushrooms;
 
-	sf::Sprite sprite;
+	std::unique_ptr<sf::Sprite> sprite;
 
 	sf::Texture texture;
 

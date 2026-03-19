@@ -17,7 +17,7 @@ class Goomba : public Enemy
 
 	unsigned short death_timer;
 
-	sf::Sprite sprite;
+	std::unique_ptr<sf::Sprite> sprite;
 
 	sf::Texture texture;
 

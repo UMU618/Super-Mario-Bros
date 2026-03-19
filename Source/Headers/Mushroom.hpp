@@ -13,7 +13,7 @@ class Mushroom
 	//Before the mushroom begins to move, it needs to get out of the question block.
 	unsigned short start_y;
 
-	sf::Sprite sprite;
+	std::unique_ptr<sf::Sprite> sprite;
 
 	sf::Texture texture;
 public:

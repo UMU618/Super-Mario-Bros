@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cmath>
@@ -30,12 +31,10 @@ int main()
 
 	sf::Color background_color = sf::Color(0, 219, 255);
 
-	sf::Event event;
+	sf::RenderWindow window(sf::VideoMode({SCREEN_RESIZE * SCREEN_WIDTH, SCREEN_RESIZE * SCREEN_HEIGHT}), "Super Mario Bros", sf::Style::Close);
+	window.setPosition({window.getPosition().x, window.getPosition().y - 90});
 
-	sf::RenderWindow window(sf::VideoMode(SCREEN_RESIZE * SCREEN_WIDTH, SCREEN_RESIZE * SCREEN_HEIGHT), "Super Mario Bros", sf::Style::Close);
-	window.setPosition(sf::Vector2i(window.getPosition().x, window.getPosition().y - 90));
-
-	sf::View view(sf::FloatRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
+	sf::View view(sf::FloatRect({0, 0}, {SCREEN_WIDTH, SCREEN_HEIGHT}));
 
 	MapManager map_manager;
 
@@ -67,29 +66,21 @@ int main()
 
 			lag -= FRAME_DURATION;
 
-			while (1 == window.pollEvent(event))
+			while (const auto event = window.pollEvent())
 			{
-				switch (event.type)
+				if ((*event).is<sf::Event::Closed>())
 				{
-					case sf::Event::Closed:
+					window.close();
+				}
+				else if (const auto* keyPressed = (*event).getIf<sf::Event::KeyPressed>())
+				{
+					if (keyPressed->code == sf::Keyboard::Key::Enter)
 					{
-						window.close();
+						enemies.clear();
 
-						break;
-					}
-					case sf::Event::KeyPressed:
-					{
-						switch (event.key.code)
-						{
-							case sf::Keyboard::Enter:
-							{
-								enemies.clear();
+						mario.reset();
 
-								mario.reset();
-
-								convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
-							}
-						}
+						convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
 					}
 				}
 			}
@@ -107,7 +98,7 @@ int main()
 			}
 
 			//Keeping Mario at the center of the view.
-			view_x = std::clamp<int>(round(mario.get_x()) - 0.5f * (SCREEN_WIDTH - CELL_SIZE), 0, CELL_SIZE * map_manager.get_map_width() - SCREEN_WIDTH);
+			view_x = std::clamp<int>(static_cast<int>(round(mario.get_x())) - static_cast<int>(0.5f * (SCREEN_WIDTH - CELL_SIZE)), 0, static_cast<int>(CELL_SIZE * map_manager.get_map_width() - SCREEN_WIDTH));
 
 			map_manager.update();
 
@@ -131,7 +122,8 @@ int main()
 
 			if (FRAME_DURATION > lag)
 			{
-				view.reset(sf::FloatRect(view_x, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
+				view.setCenter({static_cast<float>(view_x + SCREEN_WIDTH / 2), SCREEN_HEIGHT / 2.0f});
+				view.setSize({SCREEN_WIDTH, SCREEN_HEIGHT});
 
 				window.setView(view);
 				window.clear(background_color);

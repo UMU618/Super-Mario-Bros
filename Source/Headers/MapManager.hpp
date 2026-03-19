@@ -7,7 +7,7 @@ class MapManager
 
 	sf::Image map_sketch;
 
-	sf::Sprite cell_sprite;
+	std::unique_ptr<sf::Sprite> cell_sprite;
 
 	sf::Texture map_texture;
 

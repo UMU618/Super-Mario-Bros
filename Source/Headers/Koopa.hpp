@@ -20,7 +20,7 @@ class Koopa : public Enemy
 
 	unsigned short get_out_timer;
 
-	sf::Sprite sprite;
+	std::unique_ptr<sf::Sprite> sprite;
 
 	sf::Texture texture;
 

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cmath>
@@ -13,7 +14,7 @@ MapManager::MapManager() :
 {
 	map_texture.loadFromFile("Resources/Images/Map.png");
 	
-	cell_sprite.setTexture(map_texture);
+	cell_sprite = std::unique_ptr<sf::Sprite>(new sf::Sprite(map_texture));
 }
 
 unsigned short MapManager::get_map_sketch_height() const
@@ -70,14 +71,14 @@ void MapManager::draw_map(const bool i_draw_background, const bool i_underground
 			unsigned short sprite_x = 0;
 			unsigned short sprite_y = 0;
 
-			cell_sprite.setPosition(CELL_SIZE * a, CELL_SIZE * b);
+			cell_sprite->setPosition({static_cast<float>(CELL_SIZE * a), static_cast<float>(CELL_SIZE * b)});
 
 			//This code is a big mess.
 			//But it works.
 			//Keep that in mind before judging me.
 			if (1 == i_draw_background)
 			{
-				sf::Color pixel = map_sketch.getPixel(a, b + 2 * map_height);
+				sf::Color pixel = map_sketch.getPixel({static_cast<unsigned int>(a), static_cast<unsigned int>(b + 2 * map_height)});
 				sf::Color pixel_down = sf::Color(0, 0, 0, 0);
 				sf::Color pixel_left = sf::Color(0, 0, 0, 0);
 				sf::Color pixel_right = sf::Color(0, 0, 0, 0);
@@ -87,22 +88,22 @@ void MapManager::draw_map(const bool i_draw_background, const bool i_underground
 				{
 					if (0 < a)
 					{
-						pixel_left = map_sketch.getPixel(a - 1, b + 2 * map_height);
+						pixel_left = map_sketch.getPixel({static_cast<unsigned int>(a - 1), static_cast<unsigned int>(b + 2 * map_height)});
 					}
 
 					if (0 < b)
 					{
-						pixel_up = map_sketch.getPixel(a, b + 2 * map_height - 1);
+						pixel_up = map_sketch.getPixel({static_cast<unsigned int>(a), static_cast<unsigned int>(b + 2 * map_height - 1)});
 					}
 
 					if (a < map_sketch.getSize().x - 1)
 					{
-						pixel_right = map_sketch.getPixel(1 + a, b + 2 * map_height);
+						pixel_right = map_sketch.getPixel({static_cast<unsigned int>(1 + a), static_cast<unsigned int>(b + 2 * map_height)});
 					}
 
 					if (b < map_height - 1)
 					{
-						pixel_down = map_sketch.getPixel(a, 1 + b + 2 * map_height);
+						pixel_down = map_sketch.getPixel({static_cast<unsigned int>(a), static_cast<unsigned int>(1 + b + 2 * map_height)});
 					}
 
 					if (sf::Color(255, 255, 255) == pixel)
@@ -181,9 +182,9 @@ void MapManager::draw_map(const bool i_draw_background, const bool i_underground
 						}
 					}
 
-					cell_sprite.setTextureRect(sf::IntRect(CELL_SIZE * sprite_x, CELL_SIZE * sprite_y, CELL_SIZE, CELL_SIZE));
+					cell_sprite->setTextureRect(sf::IntRect({CELL_SIZE * sprite_x, CELL_SIZE * sprite_y}, {CELL_SIZE, CELL_SIZE}));
 
-					i_window.draw(cell_sprite);
+					i_window.draw(*cell_sprite);
 				}
 			}
 			else if (Cell::Empty != map[a][b])
@@ -210,7 +211,7 @@ void MapManager::draw_map(const bool i_draw_background, const bool i_underground
 					}
 					else if (Cell::Pipe == map[a][b])
 					{
-						if (sf::Color(0, 182, 0) == map_sketch.getPixel(a, b))
+						if (sf::Color(0, 182, 0) == map_sketch.getPixel({static_cast<unsigned int>(a), static_cast<unsigned int>(b)}))
 						{
 							sprite_y = 1;
 
@@ -223,15 +224,15 @@ void MapManager::draw_map(const bool i_draw_background, const bool i_underground
 								sprite_x = 10;
 							}
 						}
-						else if (sf::Color(0, 146, 0) == map_sketch.getPixel(a, b))
+						else if (sf::Color(0, 146, 0) == map_sketch.getPixel({static_cast<unsigned int>(a), static_cast<unsigned int>(b)}))
 						{
 							sprite_y = 0;
 
-							if (sf::Color(0, 146, 0) == map_sketch.getPixel(a - 1, b))
+							if (sf::Color(0, 146, 0) == map_sketch.getPixel({static_cast<unsigned int>(a - 1), static_cast<unsigned int>(b)}))
 							{
 								sprite_x = 11;
 							}
-							else if (sf::Color(0, 146, 0) == map_sketch.getPixel(1 + a, b))
+							else if (sf::Color(0, 146, 0) == map_sketch.getPixel({static_cast<unsigned int>(1 + a), static_cast<unsigned int>(b)}))
 							{
 								sprite_x = 10;
 							}
@@ -239,7 +240,7 @@ void MapManager::draw_map(const bool i_draw_background, const bool i_underground
 							{
 								sprite_x = 10;
 
-								if (sf::Color(0, 146, 0) == map_sketch.getPixel(a, b - 1))
+								if (sf::Color(0, 146, 0) == map_sketch.getPixel({static_cast<unsigned int>(a), static_cast<unsigned int>(b - 1)}))
 								{
 									sprite_y = 3;
 								}
@@ -249,9 +250,9 @@ void MapManager::draw_map(const bool i_draw_background, const bool i_underground
 								}
 							}
 						}
-						else if (sf::Color(0, 219, 0) == map_sketch.getPixel(a, b))
+						else if (sf::Color(0, 219, 0) == map_sketch.getPixel({static_cast<unsigned int>(a), static_cast<unsigned int>(b)}))
 						{
-							if (sf::Color(0, 182, 0) == map_sketch.getPixel(1 + a, b))
+							if (sf::Color(0, 182, 0) == map_sketch.getPixel({static_cast<unsigned int>(1 + a), static_cast<unsigned int>(b)}))
 							{
 								sprite_x = 12;
 							}
@@ -260,7 +261,7 @@ void MapManager::draw_map(const bool i_draw_background, const bool i_underground
 								sprite_x = 11;
 							}
 
-							if (sf::Color(0, 219, 0) == map_sketch.getPixel(a, b - 1))
+							if (sf::Color(0, 219, 0) == map_sketch.getPixel({static_cast<unsigned int>(a), static_cast<unsigned int>(b - 1)}))
 							{
 								sprite_y = 3;
 							}
@@ -272,7 +273,7 @@ void MapManager::draw_map(const bool i_draw_background, const bool i_underground
 					}
 					else if (Cell::Wall == map[a][b])
 					{
-						if (sf::Color(0, 0, 0) == map_sketch.getPixel(a, b))
+						if (sf::Color(0, 0, 0) == map_sketch.getPixel({static_cast<unsigned int>(a), static_cast<unsigned int>(b)}))
 						{
 							sprite_x = 2;
 						}
@@ -282,9 +283,9 @@ void MapManager::draw_map(const bool i_draw_background, const bool i_underground
 						}
 					}
 
-					cell_sprite.setTextureRect(sf::IntRect(CELL_SIZE * sprite_x, CELL_SIZE * sprite_y, CELL_SIZE, CELL_SIZE));
+					cell_sprite->setTextureRect(sf::IntRect({CELL_SIZE * sprite_x, CELL_SIZE * sprite_y}, {CELL_SIZE, CELL_SIZE}));
 
-					i_window.draw(cell_sprite);
+					i_window.draw(*cell_sprite);
 				}
 			}
 		}
@@ -295,9 +296,9 @@ void MapManager::draw_map(const bool i_draw_background, const bool i_underground
 	{
 		for (const Object& brick_particle : brick_particles)
 		{
-			cell_sprite.setPosition(brick_particle.x, brick_particle.y);
-			cell_sprite.setTextureRect(sf::IntRect(0.25f * CELL_SIZE, CELL_SIZE * (0.25f + 2 * i_underground), 0.5f * CELL_SIZE, 0.5f * CELL_SIZE));
-			i_window.draw(cell_sprite);
+			cell_sprite->setPosition({brick_particle.x, brick_particle.y});
+			cell_sprite->setTextureRect(sf::IntRect({static_cast<int>(0.25f * CELL_SIZE), static_cast<int>(CELL_SIZE * (0.25f + 2 * i_underground))}, {static_cast<int>(0.5f * CELL_SIZE), static_cast<int>(0.5f * CELL_SIZE)}));
+			i_window.draw(*cell_sprite);
 		}
 	}
 }
@@ -353,11 +354,11 @@ std::vector<unsigned char> MapManager::map_collision(const std::vector<Cell>& i_
 {
 	std::vector<unsigned char> output;
 
-	for (short a = floor(i_hitbox.top / CELL_SIZE); a <= floor((ceil(i_hitbox.height + i_hitbox.top) - 1) / CELL_SIZE); a++)
+	for (short a = floor(i_hitbox.position.y / CELL_SIZE); a <= floor((ceil(i_hitbox.size.y + i_hitbox.position.y) - 1) / CELL_SIZE); a++)
 	{
 		output.push_back(0);
 
-		for (short b = floor(i_hitbox.left / CELL_SIZE); b <= floor((ceil(i_hitbox.left + i_hitbox.width) - 1) / CELL_SIZE); b++)
+		for (short b = floor(i_hitbox.position.x / CELL_SIZE); b <= floor((ceil(i_hitbox.position.x + i_hitbox.size.x) - 1) / CELL_SIZE); b++)
 		{
 			if (0 <= b && b < map.size())
 			{
@@ -366,14 +367,14 @@ std::vector<unsigned char> MapManager::map_collision(const std::vector<Cell>& i_
 					if (i_check_cells.end() != std::find(i_check_cells.begin(), i_check_cells.end(), map[b][a]))
 					{
 						//We're gonna return a vector of numbers. Each number is a binary representation of collisions in a single row.
-						output[a - floor(i_hitbox.top / CELL_SIZE)] += pow(2, floor((ceil(i_hitbox.left + i_hitbox.width) - 1) / CELL_SIZE) - b);
+						output[a - floor(i_hitbox.position.y / CELL_SIZE)] += pow(2, floor((ceil(i_hitbox.position.x + i_hitbox.size.x) - 1) / CELL_SIZE) - b);
 					}
 				}
 			}
 			//We're assuming that the map borders have walls.
 			else if (i_check_cells.end() != std::find(i_check_cells.begin(), i_check_cells.end(), Cell::Wall))
 			{
-				output[a - floor(i_hitbox.top / CELL_SIZE)] += pow(2, floor((ceil(i_hitbox.left + i_hitbox.width) - 1) / CELL_SIZE) - b);
+				output[a - floor(i_hitbox.position.y / CELL_SIZE)] += pow(2, floor((ceil(i_hitbox.position.x + i_hitbox.size.x) - 1) / CELL_SIZE) - b);
 			}
 		}
 	}
@@ -387,11 +388,11 @@ std::vector<unsigned char> MapManager::map_collision(const std::vector<Cell>& i_
 
 	i_collision_cells.clear();
 
-	for (short a = floor(i_hitbox.top / CELL_SIZE); a <= floor((ceil(i_hitbox.height + i_hitbox.top) - 1) / CELL_SIZE); a++)
+	for (short a = floor(i_hitbox.position.y / CELL_SIZE); a <= floor((ceil(i_hitbox.size.y + i_hitbox.position.y) - 1) / CELL_SIZE); a++)
 	{
 		output.push_back(0);
 
-		for (short b = floor(i_hitbox.left / CELL_SIZE); b <= floor((ceil(i_hitbox.left + i_hitbox.width) - 1) / CELL_SIZE); b++)
+		for (short b = floor(i_hitbox.position.x / CELL_SIZE); b <= floor((ceil(i_hitbox.position.x + i_hitbox.size.x) - 1) / CELL_SIZE); b++)
 		{
 			if (0 <= b && b < map.size())
 			{
@@ -402,13 +403,13 @@ std::vector<unsigned char> MapManager::map_collision(const std::vector<Cell>& i_
 						//Since C++ doesn't support returning 2 vectors, we're gonna change the argument vector.
 						i_collision_cells.push_back(sf::Vector2i(b, a));
 
-						output[a - floor(i_hitbox.top / CELL_SIZE)] += pow(2, floor((ceil(i_hitbox.left + i_hitbox.width) - 1) / CELL_SIZE) - b);
+						output[a - floor(i_hitbox.position.y / CELL_SIZE)] += pow(2, floor((ceil(i_hitbox.position.x + i_hitbox.size.x) - 1) / CELL_SIZE) - b);
 					}
 				}
 			}
 			else if (i_check_cells.end() != std::find(i_check_cells.begin(), i_check_cells.end(), Cell::Wall))
 			{
-				output[a - floor(i_hitbox.top / CELL_SIZE)] += pow(2, floor((ceil(i_hitbox.left + i_hitbox.width) - 1) / CELL_SIZE) - b);
+				output[a - floor(i_hitbox.position.y / CELL_SIZE)] += pow(2, floor((ceil(i_hitbox.position.x + i_hitbox.size.x) - 1) / CELL_SIZE) - b);
 			}
 		}
 	}
@@ -418,5 +419,5 @@ std::vector<unsigned char> MapManager::map_collision(const std::vector<Cell>& i_
 
 sf::Color MapManager::get_map_sketch_pixel(const unsigned short i_x, const unsigned short i_y) const
 {
-	return map_sketch.getPixel(i_x, i_y);
+	return map_sketch.getPixel({i_x, i_y});
 }

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cmath>
@@ -29,7 +30,7 @@ Mario::Mario() :
 {
 	texture.loadFromFile("Resources/Images/MarioIdle.png");
 
-	sprite.setTexture(texture);
+	sprite = std::unique_ptr<sf::Sprite>(new sf::Sprite(texture));
 }
 
 bool Mario::get_dead() const
@@ -99,7 +100,7 @@ void Mario::draw(sf::RenderWindow& i_window)
 		//When Mario is growing, his sprite will switch between being big and small.
 		bool draw_big = 0 == growth_timer / MARIO_BLINKING % 2;
 
-		sprite.setPosition(round(x), round(y));
+		sprite->setPosition({static_cast<float>(round(x)), static_cast<float>(round(y))});
 
 		if (0 == dead)
 		{
@@ -120,7 +121,7 @@ void Mario::draw(sf::RenderWindow& i_window)
 				{
 					if (0 == draw_big)
 					{
-						sprite.setPosition(round(x), CELL_SIZE + round(y));
+						sprite->setPosition({static_cast<float>(round(x)), static_cast<float>(CELL_SIZE) + static_cast<float>(round(y))});
 
 						texture.loadFromFile("Resources/Images/MarioJump.png");
 					}
@@ -135,7 +136,7 @@ void Mario::draw(sf::RenderWindow& i_window)
 					{
 						if (0 == draw_big)
 						{
-							sprite.setPosition(round(x), CELL_SIZE + round(y));
+							sprite->setPosition({static_cast<float>(round(x)), static_cast<float>(CELL_SIZE) + static_cast<float>(round(y))});
 
 							texture.loadFromFile("Resources/Images/MarioIdle.png");
 						}
@@ -144,15 +145,15 @@ void Mario::draw(sf::RenderWindow& i_window)
 							texture.loadFromFile("Resources/Images/BigMarioIdle.png");
 						}
 					}
-					else if ((0 < horizontal_speed && 0 == sf::Keyboard::isKeyPressed(sf::Keyboard::Right) &&
-							  1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) ||
-							 (0 > horizontal_speed && 0 == sf::Keyboard::isKeyPressed(sf::Keyboard::Left) &&
-							  1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Right)))
+				else if ((0 < horizontal_speed && 0 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) &&
+						  1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) ||
+						 (0 > horizontal_speed && 0 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) &&
+						  1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)))
 
 					{
 						if (0 == draw_big)
 						{
-							sprite.setPosition(round(x), CELL_SIZE + round(y));
+							sprite->setPosition({static_cast<float>(round(x)), static_cast<float>(CELL_SIZE) + static_cast<float>(round(y))});
 
 							texture.loadFromFile("Resources/Images/MarioBrake.png");
 						}
@@ -190,10 +191,10 @@ void Mario::draw(sf::RenderWindow& i_window)
 				{
 					texture.loadFromFile("Resources/Images/MarioIdle.png");
 				}
-				else if ((0 < horizontal_speed && 0 == sf::Keyboard::isKeyPressed(sf::Keyboard::Right) &&
-						  1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) ||
-						 (0 > horizontal_speed && 0 == sf::Keyboard::isKeyPressed(sf::Keyboard::Left) &&
-						  1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Right)))
+				else if ((0 < horizontal_speed && 0 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) &&
+						  1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) ||
+						 (0 > horizontal_speed && 0 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) &&
+						  1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)))
 
 				{
 					texture.loadFromFile("Resources/Images/MarioBrake.png");
@@ -213,14 +214,14 @@ void Mario::draw(sf::RenderWindow& i_window)
 		{
 			if (0 == flipped)
 			{
-				sprite.setTextureRect(sf::IntRect(0, 0, texture.getSize().x, texture.getSize().y));
+				sprite->setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(texture.getSize().x), static_cast<int>(texture.getSize().y)}));
 			}
 			else
 			{
-				sprite.setTextureRect(sf::IntRect(texture.getSize().x, 0, -static_cast<int>(texture.getSize().x), texture.getSize().y));
+				sprite->setTextureRect(sf::IntRect({static_cast<int>(texture.getSize().x), 0}, {-static_cast<int>(texture.getSize().x), static_cast<int>(texture.getSize().y)}));
 			}
 
-			i_window.draw(sprite);
+			i_window.draw(*sprite);
 		}
 	}
 }
@@ -262,7 +263,7 @@ void Mario::reset()
 
 	texture.loadFromFile("Resources/Images/MarioIdle.png");
 
-	sprite.setTexture(texture);
+	sprite->setTexture(texture);
 
 	big_walk_animation.set_animation_speed(MARIO_WALK_ANIMATION_SPEED);
 	big_walk_animation.set_flipped(0);
@@ -313,16 +314,16 @@ void Mario::update(const unsigned i_view_x, MapManager& i_map_manager)
 
 		if (0 == crouching)
 		{
-			if (0 == sf::Keyboard::isKeyPressed(sf::Keyboard::Right) &&
-				1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+			if (0 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) &&
+				1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
 			{
 				moving = 1;
 
 				horizontal_speed = std::max(horizontal_speed - MARIO_ACCELERATION, -MARIO_WALK_SPEED);
 			}
 
-			if (0 == sf::Keyboard::isKeyPressed(sf::Keyboard::Left) &&
-				1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+			if (0 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) &&
+				1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
 			{
 				moving = 1;
 
@@ -344,7 +345,7 @@ void Mario::update(const unsigned i_view_x, MapManager& i_map_manager)
 
 		if (0 < powerup_state)
 		{
-			if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::C) || 1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+			if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C) || 1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
 			{
 				if (0 == crouching)
 				{
@@ -355,8 +356,8 @@ void Mario::update(const unsigned i_view_x, MapManager& i_map_manager)
 			}
 			else if (1 == crouching)
 			{
-				hit_box.height += CELL_SIZE;
-				hit_box.top -= CELL_SIZE;
+				hit_box.size.y += CELL_SIZE;
+				hit_box.position.y -= CELL_SIZE;
 
 				//Making sure we can stand up without hitting anything.
 				collision = i_map_manager.map_collision({Cell::ActivatedQuestionBlock, Cell::Brick, Cell::Pipe, Cell::QuestionBlock, Cell::Wall}, hit_box);
@@ -397,7 +398,7 @@ void Mario::update(const unsigned i_view_x, MapManager& i_map_manager)
 		}
 
 		hit_box = get_hit_box();
-		hit_box.left += horizontal_speed;
+		hit_box.position.x += horizontal_speed;
 		
 		collision = i_map_manager.map_collision({Cell::ActivatedQuestionBlock, Cell::Brick, Cell::Pipe, Cell::QuestionBlock, Cell::Wall}, hit_box);
 
@@ -425,11 +426,11 @@ void Mario::update(const unsigned i_view_x, MapManager& i_map_manager)
 		}
 
 		hit_box = get_hit_box();
-		hit_box.top++;
+		hit_box.position.y++;
 
 		collision = i_map_manager.map_collision({Cell::ActivatedQuestionBlock, Cell::Brick, Cell::Pipe, Cell::QuestionBlock, Cell::Wall}, hit_box);
 		
-		if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || 1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
+		if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || 1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z))
 		{
 			if (0 == vertical_speed && 0 == std::all_of(collision.begin(), collision.end(), [](const unsigned char i_value)
 			{
@@ -459,7 +460,7 @@ void Mario::update(const unsigned i_view_x, MapManager& i_map_manager)
 		}
 
 		hit_box = get_hit_box();
-		hit_box.top += vertical_speed;
+		hit_box.position.y += vertical_speed;
 
 		collision = i_map_manager.map_collision({Cell::ActivatedQuestionBlock, Cell::Brick, Cell::Pipe, Cell::QuestionBlock, Cell::Wall}, hit_box);
 		
@@ -533,7 +534,7 @@ void Mario::update(const unsigned i_view_x, MapManager& i_map_manager)
 		}
 
 		hit_box = get_hit_box();
-		hit_box.top++;
+		hit_box.position.y++;
 
 		collision = i_map_manager.map_collision({Cell::ActivatedQuestionBlock, Cell::Brick, Cell::Pipe, Cell::QuestionBlock, Cell::Wall}, hit_box);
 
@@ -548,7 +549,7 @@ void Mario::update(const unsigned i_view_x, MapManager& i_map_manager)
 		for (Mushroom& mushroom : mushrooms)
 		{
 			//Mushroom eating and becoming BIG, STRONG, MASCULINE!!!!
-			if (1 == get_hit_box().intersects(mushroom.get_hit_box()))
+			if (get_hit_box().findIntersection(mushroom.get_hit_box()).has_value())
 			{
 				mushroom.set_dead(1);
 
@@ -583,7 +584,7 @@ void Mario::update(const unsigned i_view_x, MapManager& i_map_manager)
 			growth_timer--;
 		}
 
-		if (y >= SCREEN_HEIGHT - get_hit_box().height)
+		if (y >= SCREEN_HEIGHT - get_hit_box().size.y)
 		{
 			die(1);
 		}
@@ -626,10 +627,10 @@ sf::FloatRect Mario::get_hit_box() const
 	//The hitbox will be small if Mario is small or crouching.
 	if (1 == crouching || 0 == powerup_state)
 	{
-		return sf::FloatRect(x, y, CELL_SIZE, CELL_SIZE);
+		return sf::FloatRect({x, y}, {CELL_SIZE, CELL_SIZE});
 	}
 	else
 	{
-		return sf::FloatRect(x, y, CELL_SIZE, 2 * CELL_SIZE);
+		return sf::FloatRect({x, y}, {CELL_SIZE, 2 * CELL_SIZE});
 	}
 }

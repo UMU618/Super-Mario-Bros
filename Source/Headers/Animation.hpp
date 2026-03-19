@@ -2,6 +2,9 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <memory>
+
 class Animation
 {
 	bool flipped;
@@ -14,7 +17,7 @@ class Animation
 	unsigned short frame_width;
 	unsigned short total_frames;
 
-	sf::Sprite sprite;
+	std::unique_ptr<sf::Sprite> sprite;
 
 	sf::Texture texture;
 public:

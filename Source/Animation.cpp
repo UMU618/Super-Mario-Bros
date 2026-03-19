@@ -10,26 +10,27 @@ Animation::Animation(const unsigned short i_frame_width, const std::string& i_te
 	frame_width(i_frame_width)
 {
 	texture.loadFromFile(i_texture_location);
+	sprite = std::make_unique<sf::Sprite>(texture);
 
 	total_frames = texture.getSize().x / frame_width;
 }
 
 void Animation::draw(sf::RenderWindow& i_window)
 {
-	sprite.setTexture(texture);
+	sprite->setTexture(texture);
 
 	if (0 == flipped)
 	{
-		sprite.setTextureRect(sf::IntRect(current_frame * frame_width, 0, frame_width, texture.getSize().y));
+		sprite->setTextureRect(sf::IntRect({static_cast<int>(current_frame * frame_width), 0}, {static_cast<int>(frame_width), static_cast<int>(texture.getSize().y)}));
 	}
 	else
 	{
 		//This is why I love SFML.
 		//It allows you to read the texture from right to left using negative numbers.
-		sprite.setTextureRect(sf::IntRect(frame_width * (1 + current_frame), 0, -frame_width, texture.getSize().y));
+		sprite->setTextureRect(sf::IntRect({static_cast<int>(frame_width * (1 + current_frame)), 0}, {static_cast<int>(-frame_width), static_cast<int>(texture.getSize().y)}));
 	}
 
-	i_window.draw(sprite);
+	i_window.draw(*sprite);
 }
 
 void Animation::set_animation_speed(const unsigned short i_animation_speed)
@@ -44,7 +45,7 @@ void Animation::set_flipped(const bool i_value)
 
 void Animation::set_position(const short i_x, const short i_y)
 {
-	sprite.setPosition(i_x, i_y);
+	sprite->setPosition({static_cast<float>(i_x), static_cast<float>(i_y)});
 }
 
 void Animation::set_texture_location(const std::string& i_texture_location)
