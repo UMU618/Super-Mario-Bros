@@ -1,0 +1,14 @@
+bak/
+tmp/
+*.bak
+*.tmp
+
+.vscode/
+
+# macOS
+.DS_Store
+
+# VS
+.vs/
+bin/
+tmp/
